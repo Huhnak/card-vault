@@ -39,7 +39,7 @@ func (r *CardRepository) Save(ctx context.Context, card *domain.TokenizedCard) e
 	}
 
 	queryAudit := `
-		INSERT INTO token_audit_logs (id, action, created_at)
+		INSERT INTO token_audit_logs (token_id, action, created_at)
 		VALUES ($1, $2, $3)
 	`
 	_, err = tx.ExecContext(ctx, queryAudit,

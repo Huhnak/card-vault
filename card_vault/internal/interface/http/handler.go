@@ -5,6 +5,7 @@ import (
 	"errors"
 	"huhnak/card_vault/internal/application"
 	"huhnak/card_vault/internal/domain"
+	"log/slog"
 	"net/http"
 )
 
@@ -18,6 +19,7 @@ func NewHandler(service *application.CardService) *Handler {
 
 func (h *Handler) RegisterRouter(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/v1/cards/tokenize", h.handleTokenize)
+	mux.HandleFunc("GET /api/v1/cards/{token}", h.handleCardByToken)
 }
 
 func (h *Handler) handleTokenize(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +41,10 @@ func (h *Handler) handleTokenize(w http.ResponseWriter, r *http.Request) {
 			errors.Is(err, domain.ErrInvalidCardNumber):
 			writeErrorResponse(&w, http.StatusBadRequest, err.Error())
 		default:
+			slog.Error("internal error during card tokenization",
+				slog.Any("error", err),
+				slog.String("path", r.URL.Path),
+			)
 			writeErrorResponse(&w, http.StatusInternalServerError, "internal server error")
 		}
 		return
