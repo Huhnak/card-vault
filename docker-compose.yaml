@@ -1,0 +1,35 @@
+services:
+  app:
+    build: ./card_vault
+    ports:
+      - "8080:8080"
+    env_file: ".env"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  postgres:
+    image: postgres:16-alpine
+    env_file: ".env"
+    ports:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/001_create_cards_and_audit_tables.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d vault_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+volumes:
+  pgdata:

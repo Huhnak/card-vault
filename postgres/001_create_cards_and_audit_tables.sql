@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS cards (
+    id VARCHAR(64) PRIMARY KEY,
+    masked_pan VARCHAR(20) NOT NULL,
+    exp_month INT NOT NULL CHECK (exp_month BETWEEN 1 AND 12),
+    exp_year INT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS token_audit_logs (
+    id SERIAL PRIMARY KEY,
+    token_id VARCHAR(64) NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+    action VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_cards_created_at ON cards(created_at);
