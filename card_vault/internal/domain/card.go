@@ -27,7 +27,7 @@ func (c CardInput) String() string {
 }
 
 type TokenizedCard struct {
-	ID        string    `json:"token"`
+	ID        string    `json:"token""`
 	MaskedPAN string    `json:"masked_pan"`
 	ExpMonth  int       `json:"exp_month"`
 	ExpYear   int       `json:"exp_year"`

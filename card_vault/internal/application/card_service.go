@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 	"unicode"
@@ -62,7 +63,9 @@ func (s *CardService) TokenizeCard(ctx context.Context, input domain.CardInput) 
 		return nil, fmt.Errorf("failed to save card to db: %w", err)
 	}
 	if s.cache != nil {
-		_ = s.cache.SetToken(ctx, token, card, 10*time.Minute)
+		if err := s.cache.SetToken(ctx, token, card, 10*time.Minute); err != nil {
+			slog.Error("failed to set card in cache", "error", err)
+		}
 	}
 	return card, nil
 }
@@ -78,7 +81,9 @@ func (s CardService) GetById(ctx context.Context, token string) (*domain.Tokeniz
 		return nil, fmt.Errorf("failed to retrieve card: %w", err)
 	}
 	if s.cache != nil {
-		s.cache.SetToken(ctx, token, card, 10*time.Minute)
+		if err := s.cache.SetToken(ctx, token, card, 10*time.Minute); err != nil {
+			slog.Error("failed to set card in cache", "token", token, "error", err)
+		}
 	}
 	return card, nil
 }

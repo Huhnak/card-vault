@@ -18,14 +18,15 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./postgres/001_create_cards_and_audit_tables.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d vault_db"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d card_vault_db"]
       interval: 5s
       timeout: 5s
       retries: 5
   redis:
     image: redis:7-alpine
+    env_file: ".env"
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

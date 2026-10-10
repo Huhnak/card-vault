@@ -6,6 +6,7 @@ import (
 	"huhnak/card_vault/internal/application"
 	httpinterface "huhnak/card_vault/internal/interface/http"
 	"huhnak/card_vault/internal/repository/postgres"
+	"huhnak/card_vault/internal/repository/rediscache"
 	"log/slog"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -34,8 +36,23 @@ func main() {
 	defer db.Close()
 	// End of initializing postgres
 
+	// Initializing redis
+	redisDB := redis.NewClient(&redis.Options{
+		Addr:     os.Getenv("REDIS_URL"),
+		Password: os.Getenv("REDIS_PASSWORD"),
+		DB:       0,
+	})
+	defer redisDB.Close()
+	if err := redisDB.Ping(context.Background()).Err(); err != nil {
+		slog.Error("Unable to connect to redis", "error", err)
+		os.Exit(1)
+	}
+
+	// End of initializing redis
+
 	repo := postgres.NewCardRepository(db)
-	svc := application.NewCardService(&repo, nil)
+	cache := rediscache.NewCardCache(redisDB)
+	svc := application.NewCardService(&repo, cache)
 	httpHandler := httpinterface.NewHandler(svc)
 
 	mux := http.NewServeMux()
